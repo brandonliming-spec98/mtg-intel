@@ -1,98 +1,158 @@
-import Link from "next/link";
-import { Zap, PlayCircle, MessageSquare, Newspaper, Clock } from "lucide-react";
+"use client";
 
-const SOURCES = [
-  { icon: PlayCircle, label: "Alpha Investments", desc: "YouTube · Finance & Speculation", color: "#ef4444", status: "Phase 2" },
-  { icon: PlayCircle, label: "Tolarian Community College", desc: "YouTube · Set Reviews & Value", color: "#ef4444", status: "Phase 2" },
-  { icon: MessageSquare, label: "r/mtgfinance", desc: "Reddit · Community Signals", color: "#ff6314", status: "Phase 2" },
-  { icon: MessageSquare, label: "r/magicTCG", desc: "Reddit · Player Sentiment", color: "#ff6314", status: "Phase 2" },
-  { icon: Newspaper, label: "MTGGoldfish Articles", desc: "News · Meta & Set Analysis", color: "#4a90d9", status: "Phase 2" },
-  { icon: Newspaper, label: "EDHREC", desc: "News · Commander Demand", color: "#4a90d9", status: "Phase 2" },
-];
+import { useEffect, useState } from "react";
+import { Zap, RefreshCw } from "lucide-react";
+import SignalCard from "@/components/SignalCard";
+import type { IntelSignal } from "@/types";
+
+function topCardBySignals(signals: IntelSignal[]): string {
+  const counts = signals.reduce<Record<string, number>>((acc, s) => {
+    acc[s.card_name_raw] = (acc[s.card_name_raw] ?? 0) + 1;
+    return acc;
+  }, {});
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+  return top ? top[0] : "—";
+}
 
 export default function IntelPage() {
+  const [signals, setSignals] = useState<IntelSignal[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  async function load() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/intel?limit=50");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setSignals(Array.isArray(data) ? data : []);
+      setLastUpdated(new Date());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load signals");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { load(); }, []);
+
+  const bullish  = signals.filter((s) => s.sentiment === "bullish");
+  const bearish  = signals.filter((s) => s.sentiment === "bearish");
+  const topCard  = topCardBySignals(signals);
+  const lastIngest = signals[0]
+    ? new Date(signals[0].published_at).toLocaleDateString()
+    : "—";
+
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-8 py-8">
       {/* Header */}
-      <div className="text-center mb-12">
-        <div className="inline-flex items-center gap-2 bg-gold/10 border border-gold/20 rounded-full px-4 py-1.5 text-xs font-mono text-gold mb-6">
-          <Clock size={12} />
-          PHASE 2 — IN DEVELOPMENT
+      <div className="flex items-start justify-between gap-4 mb-8">
+        <div>
+          <h1 className="font-display text-3xl font-bold text-white mb-1">
+            Intelligence Feed
+          </h1>
+          <p className="text-neutral text-sm">
+            AI-analyzed signals from YouTube, Reddit, and MTG news
+          </p>
         </div>
-        <h1 className="font-display text-4xl font-bold text-white mb-4">
-          Intelligence Feed
-        </h1>
-        <p className="text-neutral text-lg max-w-lg mx-auto leading-relaxed">
-          AI-powered analysis of YouTube commentary, Reddit posts, and MTG news — automatically surfacing what the community is bullish or bearish on.
-        </p>
+        <button
+          onClick={load}
+          disabled={loading}
+          className="flex items-center gap-2 border border-bg-border text-neutral hover:text-white hover:border-gold/30 transition-all rounded-xl px-3 py-2 text-sm font-mono flex-shrink-0 disabled:opacity-40"
+        >
+          <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+          Refresh
+        </button>
       </div>
 
-      {/* How it works */}
-      <div className="bg-bg-card border border-bg-border rounded-2xl p-6 mb-8">
-        <h2 className="font-display text-xl font-bold text-white mb-4">How the Intelligence Loop Works</h2>
-        <div className="grid md:grid-cols-3 gap-4">
+      {/* Stats bar */}
+      {signals.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           {[
-            { step: "01", title: "Ingest", desc: "New YouTube videos and Reddit posts are pulled automatically every few hours" },
-            { step: "02", title: "Analyze", desc: "Claude AI reads each piece of content and extracts card mentions, sentiment, and signals" },
-            { step: "03", title: "Surface", desc: "Signals appear on card pages and in this feed — ranked by strength and recency" },
-          ].map(s => (
-            <div key={s.step} className="flex gap-3">
-              <span className="font-mono text-2xl font-bold text-gold/30">{s.step}</span>
-              <div>
-                <div className="font-bold text-white text-sm mb-1">{s.title}</div>
-                <div className="text-neutral text-xs leading-relaxed">{s.desc}</div>
-              </div>
+            { label: "Total Signals", value: signals.length,    color: "#d4a843" },
+            { label: "Bullish",       value: bullish.length,    color: "#22c55e" },
+            { label: "Bearish",       value: bearish.length,    color: "#ef4444" },
+            { label: "Last Ingested", value: lastIngest,        color: "#a855f7" },
+          ].map(({ label, value, color }) => (
+            <div
+              key={label}
+              className="bg-bg-card border border-bg-border rounded-xl p-3 text-center"
+            >
+              <div className="font-mono font-bold text-xl" style={{ color }}>{value}</div>
+              <div className="text-neutral text-xs mt-0.5">{label}</div>
             </div>
           ))}
         </div>
-      </div>
+      )}
 
-      {/* Sources grid */}
-      <h2 className="font-mono text-xs text-neutral uppercase tracking-wider mb-4">
-        Sources Being Integrated
-      </h2>
-      <div className="grid md:grid-cols-2 gap-3 mb-10">
-        {SOURCES.map(({ icon: Icon, label, desc, color, status }) => (
-          <div key={label} className="flex items-center gap-4 bg-bg-card border border-bg-border rounded-xl p-4">
+      {/* Loading skeleton */}
+      {loading && signals.length === 0 && (
+        <div className="flex flex-col gap-3">
+          {Array.from({ length: 6 }).map((_, i) => (
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-              style={{ background: `${color}15`, border: `1px solid ${color}30` }}
-            >
-              <Icon size={18} style={{ color }} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="font-bold text-white text-sm">{label}</div>
-              <div className="text-neutral text-xs">{desc}</div>
-            </div>
-            <span className="text-xs font-mono text-neutral bg-bg-elevated border border-bg-border rounded-full px-2 py-1 flex-shrink-0">
-              {status}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* CTA to Phase 1 */}
-      <div className="bg-bg-elevated border border-bg-border rounded-2xl p-8 text-center">
-        <Zap size={32} className="text-gold mx-auto mb-4" />
-        <h3 className="font-display text-xl font-bold text-white mb-2">While you wait…</h3>
-        <p className="text-neutral text-sm mb-6">
-          Explore live card prices and today's market movers — available right now.
-        </p>
-        <div className="flex justify-center gap-3 flex-wrap">
-          <Link
-            href="/search"
-            className="bg-gold text-bg-primary font-mono font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-gold-light transition-colors"
-          >
-            Search Cards
-          </Link>
-          <Link
-            href="/market"
-            className="border border-bg-border text-white font-mono text-sm px-5 py-2.5 rounded-xl hover:border-gold/30 hover:text-gold transition-all"
-          >
-            Market Movers
-          </Link>
+              key={i}
+              className="bg-bg-card border border-bg-border rounded-xl p-4 animate-pulse h-[88px]"
+            />
+          ))}
         </div>
-      </div>
+      )}
+
+      {/* Error */}
+      {error && (
+        <div className="bg-bg-card border border-red-500/20 rounded-xl p-6 text-center mb-6">
+          <p className="text-red-400 text-sm mb-3">{error}</p>
+          <p className="text-neutral text-xs">
+            Make sure your Supabase env vars are configured and the migration has been run.
+          </p>
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!loading && !error && signals.length === 0 && (
+        <div className="bg-bg-card border border-bg-border rounded-2xl p-10 text-center">
+          <Zap size={32} className="text-gold mx-auto mb-4" />
+          <h3 className="font-display text-lg font-bold text-white mb-2">No signals yet</h3>
+          <p className="text-neutral text-sm max-w-sm mx-auto">
+            Trigger the Reddit ingestion endpoint to start populating signals, or wait for the
+            scheduled cron job.
+          </p>
+          <code className="block mt-4 text-xs font-mono text-neutral/60 bg-bg-elevated border border-bg-border rounded-lg p-3">
+            POST /api/ingest/reddit
+          </code>
+        </div>
+      )}
+
+      {/* Feed */}
+      {signals.length > 0 && (
+        <>
+          {topCard !== "—" && (
+            <p className="text-neutral text-xs font-mono mb-3">
+              Top card:{" "}
+              <span style={{ color: "#a855f7" }}>{topCard}</span>
+            </p>
+          )}
+          <div className="flex flex-col gap-3">
+            {signals.map((signal, i) => {
+              const momentum = Math.min(100, signal.signal_strength * 10);
+              return (
+                <SignalCard
+                  key={signal.id}
+                  signal={signal}
+                  momentumScore={momentum}
+                  listIndex={i}
+                />
+              );
+            })}
+          </div>
+          {lastUpdated && (
+            <p className="text-center text-neutral/40 text-xs font-mono mt-6">
+              Updated {lastUpdated.toLocaleTimeString()}
+            </p>
+          )}
+        </>
+      )}
     </div>
   );
 }
