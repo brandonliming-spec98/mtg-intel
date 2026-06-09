@@ -71,7 +71,7 @@ export default function IntelPage() {
       {signals.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           {[
-            { label: "Total Signals", value: signals.length,    color: "#d4a843" },
+            { label: "Total Signals Today", value: signals.length,    color: "#d4a843" },
             { label: "Bullish",       value: bullish.length,    color: "#22c55e" },
             { label: "Bearish",       value: bearish.length,    color: "#ef4444" },
             { label: "Last Ingested", value: lastIngest,        color: "#a855f7" },
