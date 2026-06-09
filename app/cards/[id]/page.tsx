@@ -1,11 +1,16 @@
 import { getCardById, getCardRulings, getCardPrints, rarityColor } from "@/lib/scryfall";
 import { getPriceWithFallback, formatPrice, getPriceChangeLabel } from "@/lib/price-sources";
+import { fetchSignals } from "@/lib/supabase-signals";
 import CardImage from "@/components/CardImage";
 import PriceChart from "@/components/PriceChart";
 import RarityBadge from "@/components/RarityBadge";
 import Link from "next/link";
 import { ExternalLink, BookOpen, TrendingUp, Layers, AlertCircle } from "lucide-react";
+import CardHero from "@/components/CardHero";
+import SignalCard from "@/components/SignalCard";
+import { computeMomentum } from "@/lib/chart-utils";
 import { notFound } from "next/navigation";
+import type { IntelSignal } from "@/types";
 
 interface Props { params: Promise<{ id: string }> }
 
@@ -49,6 +54,13 @@ export default async function CardDetailPage({ params }: Props) {
     notFound();
   }
 
+  let signals: IntelSignal[] = [];
+  try {
+    signals = await fetchSignals({ cardName: card.name, limit: 10 });
+  } catch {
+    // Supabase not configured yet — silently skip
+  }
+
   const scryfallPrice = card.prices?.usd ? parseFloat(card.prices.usd) : null;
   const displayPrice = priceData?.currentPrice ?? scryfallPrice;
   const rColor = rarityColor(card.rarity);
@@ -60,6 +72,30 @@ export default async function CardDetailPage({ params }: Props) {
     ? getPriceChangeLabel(weekAgoPrice, displayPrice)
     : null;
   const priceUp = priceChange?.startsWith("+") ?? null;
+
+  const bullish = signals.filter((s) => s.sentiment === "bullish");
+  const bearish = signals.filter((s) => s.sentiment === "bearish");
+
+  const now = Date.now();
+  const signals24h = signals.filter(
+    (s) => now - new Date(s.published_at).getTime() < 86400000
+  ).length;
+  const avgStrength =
+    signals.length > 0
+      ? signals.reduce((acc, s) => acc + s.signal_strength, 0) / signals.length
+      : 0;
+  const priceDeltaPct =
+    weekAgoPrice && displayPrice && weekAgoPrice > 0
+      ? ((displayPrice - weekAgoPrice) / weekAgoPrice) * 100
+      : 0;
+  const momentumScore = computeMomentum(signals.length, avgStrength, priceDeltaPct);
+
+  const cardImageUrl =
+    card.image_uris?.normal ?? card.card_faces?.[0]?.image_uris?.normal;
+
+  const legalFormats = Object.entries(card.legalities)
+    .filter(([, v]) => v === "legal")
+    .map(([f]) => f.charAt(0).toUpperCase() + f.slice(1));
 
   const formats = Object.entries(card.legalities)
     .filter(([, v]) => v === "legal")
@@ -81,33 +117,31 @@ export default async function CardDetailPage({ params }: Props) {
         <div className="space-y-4">
           <CardImage card={card} size="large" showBack className="w-full max-w-[320px] mx-auto" />
 
-          {/* Price box */}
-          <div className="bg-bg-card border border-bg-border rounded-2xl p-5">
-            <div className="text-xs font-mono text-neutral uppercase tracking-wider mb-2">Market Price</div>
-            <div className="flex items-end justify-between">
-              <span className="font-mono text-3xl font-bold text-white">
-                {formatPrice(displayPrice)}
-              </span>
-              {priceChange && (
-                <span className={`text-sm font-mono font-bold mb-1 ${priceUp ? "text-bull" : "text-bear"}`}>
-                  {priceChange} 7d
-                </span>
-              )}
+          {/* Price + momentum */}
+          <CardHero
+            name={card.name}
+            formats={legalFormats}
+            price={displayPrice}
+            priceChange={priceChange}
+            priceUp={priceUp}
+            sentiment={
+              signals.length === 0
+                ? null
+                : bullish.length > bearish.length
+                ? "bullish"
+                : bearish.length > bullish.length
+                ? "bearish"
+                : "neutral"
+            }
+            momentumScore={momentumScore}
+            signalCount7d={signals.length}
+            signalCount24h={signals24h}
+          />
+          {history.length > 0 && (
+            <div className="bg-bg-card border border-bg-border rounded-2xl p-5">
+              <PriceChart history={history} currentPrice={displayPrice} />
             </div>
-
-            {card.prices?.usd_foil && (
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-bg-border">
-                <span className="text-xs font-mono text-neutral">Foil</span>
-                <span className="text-sm font-mono font-bold" style={{ color: rColor }}>
-                  {formatPrice(parseFloat(card.prices.usd_foil))}
-                </span>
-              </div>
-            )}
-
-            <div className="text-xs font-mono text-neutral mt-3 opacity-60">
-              via {priceData?.source ?? "scryfall"} · updated {new Date().toLocaleDateString()}
-            </div>
-          </div>
+          )}
 
           {/* External links */}
           <div className="flex gap-2">
@@ -172,16 +206,6 @@ export default async function CardDetailPage({ params }: Props) {
             </div>
           )}
 
-          {/* Price Chart */}
-          {history.length > 0 && (
-            <div className="bg-bg-card border border-bg-border rounded-2xl p-5">
-              <div className="flex items-center gap-2 text-xs font-mono text-neutral uppercase tracking-wider mb-4">
-                <TrendingUp size={12} /> Price History
-              </div>
-              <PriceChart history={history} currentPrice={displayPrice} />
-            </div>
-          )}
-
           {/* Legality */}
           {formats.length > 0 && (
             <div className="bg-bg-card border border-bg-border rounded-2xl p-5">
@@ -225,6 +249,32 @@ export default async function CardDetailPage({ params }: Props) {
                   This card is on the Magic: The Gathering Reserved List — Wizards of the Coast has committed to never reprint it. This significantly impacts long-term price floor.
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Intel signals */}
+          {signals.length > 0 && (
+            <div className="bg-bg-card border border-bg-border rounded-2xl p-5">
+              <div className="flex items-center gap-2 text-xs font-mono text-neutral uppercase tracking-wider mb-4">
+                <span>◆</span> What People Are Saying
+              </div>
+              <div className="flex flex-col gap-3">
+                {signals.map((signal, i) => (
+                  <SignalCard
+                    key={signal.id}
+                    signal={signal}
+                    cardImageUrl={cardImageUrl}
+                    momentumScore={Math.min(100, signal.signal_strength * 10)}
+                    listIndex={i}
+                  />
+                ))}
+              </div>
+              <a
+                href="/intel"
+                className="block text-center text-xs font-mono text-gold/60 hover:text-gold mt-4 transition-colors"
+              >
+                View all signals →
+              </a>
             </div>
           )}
         </div>
