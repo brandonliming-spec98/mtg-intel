@@ -23,7 +23,7 @@ describe("ruleBasedAnalyze", () => {
     const { ruleBasedAnalyze: analyze } = await import("@/lib/rule-based-analysis");
 
     const signals = await analyze(
-      { ...baseInput, content: "Ragavan is underpriced. Also Lightning Bolt for burn." },
+      { ...baseInput, content: "Ragavan, Nimble Pilferer is underpriced. Also Lightning Bolt for burn." },
     );
 
     const names = signals.map((s) => s.card_name_raw);
@@ -75,7 +75,7 @@ describe("ruleBasedAnalyze", () => {
     }));
     const { ruleBasedAnalyze: analyze } = await import("@/lib/rule-based-analysis");
 
-    const signals = await analyze({ ...baseInput, content: "Ragavan is around." });
+    const signals = await analyze({ ...baseInput, content: "Ragavan, Nimble Pilferer is around." });
     expect(signals[0].sentiment).toBe("neutral");
     expect(signals[0].signal_strength).toBe(3);
     expect(signals[0].summary).toBe("Card mentioned in source");
