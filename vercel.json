@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/ingest/reddit",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/ingest/youtube",
+      "schedule": "0 9 * * *"
+    }
+  ]
+}
