@@ -115,6 +115,20 @@ export default function PriceChart({ history, currentPrice }: Props) {
     let particles: Particle[] = [];
     let arcTimer = 0;
 
+    function drawSmoothPath(ctx: CanvasRenderingContext2D, points: { x: number; y: number }[]) {
+      if (points.length === 0) return;
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length - 1; i++) {
+        const mx = (points[i].x + points[i + 1].x) / 2;
+        const my = (points[i].y + points[i + 1].y) / 2;
+        ctx.quadraticCurveTo(points[i].x, points[i].y, mx, my);
+      }
+      if (points.length > 1) {
+        const last = points[points.length - 1];
+        ctx.lineTo(last.x, last.y);
+      }
+    }
+
     function tick() {
       ctx.clearRect(0, 0, CW, CH);
       const progress = Math.min(frame / ANIM_FRAMES, 1);
@@ -143,8 +157,7 @@ export default function PriceChart({ history, currentPrice }: Props) {
         grad.addColorStop(0, "rgba(168,85,247,0.28)");
         grad.addColorStop(1, "rgba(168,85,247,0)");
         ctx.beginPath();
-        ctx.moveTo(pts[0].x, pts[0].y);
-        for (let i = 1; i <= pointIdx; i++) ctx.lineTo(pts[i].x, pts[i].y);
+        drawSmoothPath(ctx, pts.slice(0, pointIdx + 1));
         ctx.lineTo(tip.x, CHART_BOT);
         ctx.lineTo(pts[0].x, CHART_BOT);
         ctx.closePath();
@@ -172,8 +185,7 @@ export default function PriceChart({ history, currentPrice }: Props) {
         // 5. Price line outer glow
         ctx.save();
         ctx.beginPath();
-        ctx.moveTo(pts[0].x, pts[0].y);
-        for (let i = 1; i <= pointIdx; i++) ctx.lineTo(pts[i].x, pts[i].y);
+        drawSmoothPath(ctx, pts.slice(0, pointIdx + 1));
         ctx.strokeStyle = "rgba(168,85,247,0.25)";
         ctx.lineWidth = 7;
         ctx.lineCap = "round";
@@ -185,8 +197,7 @@ export default function PriceChart({ history, currentPrice }: Props) {
         // 6. Price line core
         ctx.save();
         ctx.beginPath();
-        ctx.moveTo(pts[0].x, pts[0].y);
-        for (let i = 1; i <= pointIdx; i++) ctx.lineTo(pts[i].x, pts[i].y);
+        drawSmoothPath(ctx, pts.slice(0, pointIdx + 1));
         ctx.strokeStyle = "rgba(240,230,255,0.95)";
         ctx.lineWidth = 1.8;
         ctx.lineCap = "round";
@@ -221,13 +232,16 @@ export default function PriceChart({ history, currentPrice }: Props) {
           const n = 2 + Math.floor(Math.random() * 3);
           for (let i = 0; i < n; i++) {
             drawLightningArc(ctx, tip.x, tip.y, Math.random() * Math.PI * 2,
-              8 + Math.random() * 16, 0.4 + Math.random() * 0.5);
+              10 + Math.random() * 15, 0.4 + Math.random() * 0.5);
           }
           if (pointIdx > 3) {
             const prev = pts[Math.max(0, pointIdx - 4)];
             const fwdAngle = Math.atan2(tip.y - prev.y, tip.x - prev.x);
-            drawLightningArc(ctx, tip.x, tip.y, fwdAngle + (Math.random() - 0.5) * 0.6,
-              14 + Math.random() * 10, 0.7);
+            const fwdCount = 1 + Math.floor(Math.random() * 2);
+            for (let f = 0; f < fwdCount; f++) {
+              drawLightningArc(ctx, tip.x, tip.y, fwdAngle + (Math.random() - 0.5) * 0.6,
+                14 + Math.random() * 10, 0.7);
+            }
           }
         }
         if (frame % 3 === 0) {
