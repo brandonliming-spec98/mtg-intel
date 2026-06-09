@@ -86,14 +86,16 @@ export default function PriceChart({ history, currentPrice }: Props) {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
 
     const filtered = filterByDays(history, days);
-    if (filtered.length === 0) return;
+    if (filtered.length < 2) return;
 
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
     if (rect.width === 0) return;
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
-    const ctx = canvas.getContext("2d")!;
+    const canvasCtx = canvas.getContext("2d");
+    if (!canvasCtx) return;
+    const ctx = canvasCtx;
     ctx.scale((dpr * rect.width) / CW, (dpr * rect.height) / CH);
 
     const prices = filtered.map((p) => p.price);
