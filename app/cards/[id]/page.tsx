@@ -97,10 +97,6 @@ export default async function CardDetailPage({ params }: Props) {
     .filter(([, v]) => v === "legal")
     .map(([f]) => f.charAt(0).toUpperCase() + f.slice(1));
 
-  const formats = Object.entries(card.legalities)
-    .filter(([, v]) => v === "legal")
-    .map(([f]) => f);
-
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 animate-fade-in">
       {/* Breadcrumb */}
@@ -207,13 +203,13 @@ export default async function CardDetailPage({ params }: Props) {
           )}
 
           {/* Legality */}
-          {formats.length > 0 && (
+          {legalFormats.length > 0 && (
             <div className="bg-bg-card border border-bg-border rounded-2xl p-5">
               <div className="flex items-center gap-2 text-xs font-mono text-neutral uppercase tracking-wider mb-3">
                 <Layers size={12} /> Legal In
               </div>
               <div className="flex flex-wrap gap-2">
-                {formats.map(f => (
+                {legalFormats.map(f => (
                   <span key={f} className="text-xs font-mono px-2.5 py-1 bg-bg-elevated border border-bg-border rounded-lg text-white capitalize">
                     {f}
                   </span>
