@@ -36,6 +36,7 @@ const config: Config = {
         display: ["'Playfair Display'", "Georgia", "serif"],
         mono: ["'JetBrains Mono'", "monospace"],
         sans: ["system-ui", "sans-serif"],
+        chakra: ["'Chakra Petch'", "sans-serif"],
       },
       backgroundImage: {
         "radial-dark": "radial-gradient(ellipse at top, #1a1a2e 0%, #0a0a0f 70%)",

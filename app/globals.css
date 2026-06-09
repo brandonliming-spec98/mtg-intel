@@ -2,6 +2,8 @@
 @import "@fontsource/playfair-display/700.css";
 @import "@fontsource/jetbrains-mono/400.css";
 @import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource/chakra-petch/600.css";
+@import "@fontsource/chakra-petch/700.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -16,6 +18,10 @@
   --gold-light: #e8c062;
   --bull: #22c55e;
   --bear: #ef4444;
+  --momentum-purple: #a855f7;
+  --momentum-indigo: #6366f1;
+  --momentum-pink: #ec4899;
+  --rainbow-bar: linear-gradient(90deg, #6366f1, #a855f7, #ec4899, #d4af37);
 }
 
 * { box-sizing: border-box; }
@@ -45,6 +51,23 @@ body {
   animation: shimmer 1.5s infinite;
 }
 
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+@keyframes signalSlideUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.signal-stagger { animation: signalSlideUp 0.4s ease both; }
+.signal-stagger:nth-child(1) { animation-delay: 0s; }
+.signal-stagger:nth-child(2) { animation-delay: 0.15s; }
+.signal-stagger:nth-child(3) { animation-delay: 0.30s; }
+.signal-stagger:nth-child(4) { animation-delay: 0.45s; }
+.signal-stagger:nth-child(5) { animation-delay: 0.60s; }
+.signal-stagger:nth-child(6) { animation-delay: 0.75s; }
+
 /* Card hover effect */
 .card-hover {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -52,6 +75,17 @@ body {
 .card-hover:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 32px rgba(212, 168, 67, 0.12);
+}
+
+.card-glow-lift {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.card-glow-lift:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 12px 40px rgba(168, 85, 247, 0.31);
+}
+.card-glow-lift:hover .card-art-thumb {
+  box-shadow: 0 0 24px rgba(168, 85, 247, 0.38);
 }
 
 /* Price badge */
