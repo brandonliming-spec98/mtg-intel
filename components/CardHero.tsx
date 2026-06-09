@@ -3,7 +3,6 @@ import MomentumBar from "./MomentumBar";
 const VELOCITY_DISPLAY: Record<string, string> = {
   high:   "↑↑↑",
   medium: "↑↑",
-  low:    "↑",
   none:   "—",
 };
 
@@ -105,7 +104,7 @@ export default function CardHero({
             <div className="font-mono text-[22px] font-bold text-white leading-none">
               {price !== null ? `$${price.toFixed(2)}` : "—"}
             </div>
-            {priceChange && (
+            {priceChange && priceUp !== null && (
               <div
                 className="text-[12px] font-mono mt-1"
                 style={{ color: priceUp ? "#22c55e" : "#ef4444" }}
