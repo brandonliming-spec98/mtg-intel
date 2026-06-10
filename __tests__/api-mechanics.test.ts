@@ -116,4 +116,12 @@ describe("GET /api/mechanics/[cardId]", () => {
     const res = await GET(makeReq() as never, makeCtx("bad-id"));
     expect(res.status).toBe(404);
   });
+
+  it("returns 500 for unexpected errors", async () => {
+    vi.mocked(getMechanicsProfile).mockResolvedValue(null);
+    vi.mocked(getCardById).mockRejectedValue(new Error("Database connection refused"));
+
+    const res = await GET(makeReq() as never, makeCtx());
+    expect(res.status).toBe(500);
+  });
 });

@@ -26,7 +26,7 @@ export async function GET(
     return NextResponse.json(profile);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    if (msg.includes("404")) {
+    if (msg.includes(": 404")) {
       return NextResponse.json({ error: "Card not found" }, { status: 404 });
     }
     return NextResponse.json({ error: msg }, { status: 500 });
