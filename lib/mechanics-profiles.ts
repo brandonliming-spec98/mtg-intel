@@ -71,7 +71,7 @@ export async function scoreNewCards(
   const scoreMechanics =
     deps.scoreMechanics ??
     (async (c: ScryfallCard) => {
-      const { analyzeMechanics } = await import(["@/lib/mechanics-analyzer"].join("") as string);
+      const { analyzeMechanics } = await import("@/lib/mechanics-analyzer");
       return analyzeMechanics(c);
     });
   const saveProfile = deps.saveProfile ?? upsertMechanicsProfile;

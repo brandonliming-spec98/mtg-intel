@@ -9,7 +9,7 @@ import { ExternalLink, BookOpen, TrendingUp, Layers, AlertCircle } from "lucide-
 import CardHero from "@/components/CardHero";
 import SignalCard from "@/components/SignalCard";
 import MechanicsPanel from "@/components/MechanicsPanel";
-import { fetchMechanicsProfile } from "@/lib/mechanics-profiles";
+import { getMechanicsProfile } from "@/lib/mechanics-profiles";
 import { computeMomentum } from "@/lib/chart-utils";
 import { notFound } from "next/navigation";
 import type { IntelSignal, MechanicsProfile } from "@/types";
@@ -61,7 +61,7 @@ export default async function CardDetailPage({ params }: Props) {
   try {
     [signals, mechanics] = await Promise.all([
       fetchSignals({ cardName: card.name, limit: 10 }).catch(() => []),
-      fetchMechanicsProfile(id).catch(() => null),
+      getMechanicsProfile(id).catch(() => null),
     ]);
   } catch {
     // Supabase not configured yet — silently skip

@@ -202,7 +202,6 @@ export async function analyzeMechanics(
     if (enrichment.edhrecRank !== null && enrichment.edhrecRank <= 500) {
       formatScores.commander = clamp(formatScores.commander + 2, 10);
     }
-    banRisk = clamp(Math.max(...FORMATS.map((f) => banRiskByFormat[f] ?? 0)), 1);
     tierUsed = "mtgoracle";
   } catch {
     /* keep tier 1 scores */
