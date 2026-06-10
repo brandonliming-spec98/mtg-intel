@@ -64,7 +64,7 @@ const MECHANIC_PATTERNS: Array<{
   { key: "companion",      match: (kw, t) => kw.includes("Companion") || /^companion\s*—/im.test(t) },
   { key: "copy_permanent", match: (_,  t) => /create a (token that'?s a )?copy/i.test(t) || /copy (target|each|all)/i.test(t) },
   { key: "free_spell",     match: (_,  t) => /without paying its mana cost/i.test(t) },
-  { key: "ramp_land",      match: (_,  t) => /put (a|up to \d+|one|two|three) (basic )?land.{0,20}from (your|a player'?s|their) (hand|library).{0,20}(onto|into) the battlefield/i.test(t) },
+  { key: "ramp_land", match: (_, t) => /search your library for .{0,30}land card/i.test(t) },
   { key: "treasure_gen",   match: (_,  t) => /create (a|an|one|two|three|\w+) treasure token/i.test(t) },
   { key: "cantrip",        match: (_,  t) => /draw a card/i.test(t) },
   { key: "reanimation",    match: (_,  t) => /return (target )?(creature|permanent|card) (card )?from (a |your |any |their )?graveyard.{0,30}(to the battlefield|to your hand)/i.test(t) },
@@ -141,7 +141,16 @@ Return this exact JSON:
   });
   const text = response.content.find((b) => b.type === "text")?.text ?? "";
   const stripped = text.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
-  return JSON.parse(stripped) as ClaudeScoreResult;
+  const parsed = JSON.parse(stripped) as ClaudeScoreResult;
+  if (
+    typeof parsed.break_score !== "number" ||
+    typeof parsed.ban_risk !== "number" ||
+    typeof parsed.format_scores !== "object" ||
+    typeof parsed.ban_risk_by_format !== "object"
+  ) {
+    throw new Error("Claude returned invalid response shape");
+  }
+  return parsed;
 }
 
 // ── Main ─────────────────────────────────────────────────────────────────────

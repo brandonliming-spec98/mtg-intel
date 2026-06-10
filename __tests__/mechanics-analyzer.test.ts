@@ -114,6 +114,18 @@ describe("analyzeMechanics — Tier 1", () => {
     });
     expect(profile.tier_used).toBe("rule_based");
   });
+
+  it("detects ramp_land in oracle text", async () => {
+    const card = makeCard({
+      oracle_text: "Search your library for a basic land card, put it onto the battlefield tapped, then shuffle.",
+    });
+    const profile = await analyzeMechanics(card, {
+      getOracleEnrichment: noEnrichment,
+      claude: noClaude,
+    });
+    expect(profile.mechanics).toContain("ramp_land");
+    expect(profile.break_score).toBeGreaterThan(1);
+  });
 });
 
 // ── Tier 2 ───────────────────────────────────────────────────────────────────
