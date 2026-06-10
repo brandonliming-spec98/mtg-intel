@@ -1,4 +1,13 @@
 import { describe, it, expect, vi } from "vitest";
+
+vi.mock("@/lib/mechanics-profiles", () => ({
+  scoreNewCards: vi.fn().mockResolvedValue({ scored: 0, errors: [] }),
+  getMechanicsProfile: vi.fn().mockResolvedValue(null),
+  upsertMechanicsProfile: vi.fn().mockResolvedValue(undefined),
+  isStale: vi.fn().mockReturnValue(false),
+  fetchMechanicsProfile: vi.fn().mockResolvedValue(null),
+}));
+
 import { runYouTubeIngestion, type YouTubeIngestResult } from "@/lib/ingest-youtube";
 import type { IntelSignal } from "@/types";
 

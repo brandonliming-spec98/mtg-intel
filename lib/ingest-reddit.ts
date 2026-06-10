@@ -39,18 +39,16 @@ export async function runRedditIngestion(deps: IngestDeps): Promise<IngestResult
   if (allSignals.length > 0) {
     await deps.storeSignals(allSignals);
 
-    if (deps.scoreMechanics) {
-      const cardNames = [...new Set(allSignals.map((s) => s.card_name_raw).filter(Boolean) as string[])];
-      if (cardNames.length > 0) {
-        try {
-          const { scoreNewCards } = await import(/* @vite-ignore */ ["@/lib/mechanics-profiles"].join(""));
-          const scoreResult = await scoreNewCards(cardNames, {
-            scoreMechanics: deps.scoreMechanics,
-          });
-          errors.push(...scoreResult.errors);
-        } catch (err) {
-          errors.push(`mechanics-scoring: ${err instanceof Error ? err.message : String(err)}`);
-        }
+    const cardNames = [...new Set(allSignals.map((s) => s.card_name_raw).filter(Boolean) as string[])];
+    if (cardNames.length > 0) {
+      try {
+        const { scoreNewCards } = await import(/* @vite-ignore */ ["@/lib/mechanics-profiles"].join(""));
+        const scoreResult = await scoreNewCards(cardNames, {
+          scoreMechanics: deps.scoreMechanics,
+        });
+        errors.push(...scoreResult.errors);
+      } catch (err) {
+        errors.push(`scoreNewCards failed: ${err instanceof Error ? err.message : String(err)}`);
       }
     }
   }
