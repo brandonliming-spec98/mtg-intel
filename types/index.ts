@@ -11,6 +11,7 @@ export interface ScryfallCard {
   cmc: number;
   type_line: string;
   oracle_text?: string;
+  keywords?: string[];
   power?: string;
   toughness?: string;
   loyalty?: string;
@@ -127,4 +128,22 @@ export interface IntelSignal {
   signal_strength: number;
   summary: string;
   published_at: string;
+}
+
+// ── Mechanics Profile (Phase 4) ─────────────────────────────────────────────
+
+export type FormatKey = "standard" | "pioneer" | "modern" | "legacy" | "commander";
+
+export interface MechanicsProfile {
+  card_id: string;
+  card_name: string;
+  mechanics: string[];
+  format_scores: Record<FormatKey, number>;
+  break_score: number;
+  ban_risk: number;
+  ban_risk_by_format: Partial<Record<FormatKey, number>>;
+  price_ceiling_flag: boolean;
+  ban_reasoning?: string;
+  tier_used: "rule_based" | "mtgoracle" | "claude";
+  computed_at: string;
 }
