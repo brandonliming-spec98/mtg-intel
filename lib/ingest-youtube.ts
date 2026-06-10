@@ -1,5 +1,5 @@
 import type { HybridAnalysisInput } from "@/lib/hybrid-analysis";
-import type { IntelSignal } from "@/types";
+import type { IntelSignal, ScryfallCard, MechanicsProfile } from "@/types";
 
 export interface YouTubeIngestResult {
   videosProcessed: number;
@@ -11,6 +11,7 @@ interface YouTubeIngestDeps {
   fetchVideos: () => Promise<HybridAnalysisInput[]>;
   analyzeText: (input: HybridAnalysisInput) => Promise<IntelSignal[]>;
   storeSignals: (signals: IntelSignal[]) => Promise<void>;
+  scoreMechanics?: (card: ScryfallCard) => Promise<MechanicsProfile>;
 }
 
 export async function runYouTubeIngestion(deps: YouTubeIngestDeps): Promise<YouTubeIngestResult> {
@@ -30,6 +31,21 @@ export async function runYouTubeIngestion(deps: YouTubeIngestDeps): Promise<YouT
 
   if (allSignals.length > 0) {
     await deps.storeSignals(allSignals);
+
+    if (deps.scoreMechanics) {
+      const cardNames = [...new Set(allSignals.map((s) => s.card_name_raw).filter(Boolean) as string[])];
+      if (cardNames.length > 0) {
+        try {
+          const { scoreNewCards } = await import(/* @vite-ignore */ ["@/lib/mechanics-profiles"].join(""));
+          const scoreResult = await scoreNewCards(cardNames, {
+            scoreMechanics: deps.scoreMechanics,
+          });
+          errors.push(...scoreResult.errors);
+        } catch (err) {
+          errors.push(`mechanics-scoring: ${err instanceof Error ? err.message : String(err)}`);
+        }
+      }
+    }
   }
 
   return {
