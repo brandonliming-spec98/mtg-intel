@@ -6,11 +6,12 @@ type Client = Pick<SupabaseClient, "from">;
 
 const STALE_MS = 7 * 24 * 60 * 60 * 1000;
 
+let _defaultClient: Client | null = null;
 function getDefaultClient(): Client {
-  return createClient(
+  return (_defaultClient ??= createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  ));
 }
 
 export async function getMechanicsProfile(
@@ -70,9 +71,8 @@ export async function scoreNewCards(
   const scoreMechanics =
     deps.scoreMechanics ??
     (async (c: ScryfallCard) => {
-      // eslint-disable-next-line @typescript-eslint/no-implied-eval
-      const mod = await import(/* @vite-ignore */ ["@/lib/mechanics-analyzer"].join(""));
-      return (mod as { analyzeMechanics: (c: ScryfallCard) => Promise<MechanicsProfile> }).analyzeMechanics(c);
+      const { analyzeMechanics } = await import(["@/lib/mechanics-analyzer"].join("") as string);
+      return analyzeMechanics(c);
     });
   const saveProfile = deps.saveProfile ?? upsertMechanicsProfile;
 

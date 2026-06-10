@@ -152,4 +152,20 @@ describe("scoreNewCards", () => {
     });
     expect(getCard).toHaveBeenCalledOnce();
   });
+
+  it("re-scores cards with stale profiles", async () => {
+    const staleProfile = makeProfile({
+      computed_at: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+    const freshProfile = makeProfile({ break_score: 5 });
+    const saveProfile = vi.fn().mockResolvedValue(undefined);
+    const result = await scoreNewCards(["Test Card"], {
+      getCard: vi.fn().mockResolvedValue(makeCard()),
+      getProfile: vi.fn().mockResolvedValue(staleProfile),
+      scoreMechanics: vi.fn().mockResolvedValue(freshProfile),
+      saveProfile,
+    });
+    expect(saveProfile).toHaveBeenCalledWith(freshProfile);
+    expect(result.scored).toBe(1);
+  });
 });
