@@ -74,7 +74,7 @@ export default function MechanicsPanel({ profile }: { profile: MechanicsProfile 
       {/* Format scores grid */}
       <div className="grid grid-cols-5 gap-2">
         {FORMATS.map(({ key, label }) => {
-          const score = profile.format_scores[key];
+          const score = profile.format_scores[key] ?? 0;
           const pct = (score / 10) * 100;
           return (
             <div key={key} className="flex flex-col items-center gap-1">
@@ -84,7 +84,7 @@ export default function MechanicsPanel({ profile }: { profile: MechanicsProfile 
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              <span className="text-xs font-mono text-neutral">{score.toFixed(0)}</span>
+              <span className="text-xs font-mono text-neutral">{score.toFixed(1)}</span>
               <span className="text-[10px] font-mono text-neutral/60">{label}</span>
             </div>
           );
