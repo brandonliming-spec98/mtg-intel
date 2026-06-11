@@ -60,6 +60,34 @@ describe("CardTiltHero", () => {
   });
 });
 
+import PriceChart from "@/components/PriceChart";
+import type { PricePoint } from "@/types";
+
+const makePriceHistory = (): PricePoint[] =>
+  Array.from({ length: 30 }, (_, i) => ({
+    date: new Date(Date.now() - (29 - i) * 86400000).toISOString().split("T")[0],
+    price: 80 + i * 0.3,
+    source: "test",
+  }));
+
+describe("PriceChart", () => {
+  it("renders without error when signalDates are provided", () => {
+    const history = makePriceHistory();
+    const signalDates = [history[10].date, history[20].date];
+    const { container } = render(
+      <PriceChart history={history} currentPrice={89} signalDates={signalDates} />
+    );
+    expect(container.querySelector("canvas")).toBeTruthy();
+  });
+
+  it("renders without error when signalDates is omitted", () => {
+    const { container } = render(
+      <PriceChart history={makePriceHistory()} currentPrice={89} />
+    );
+    expect(container.querySelector("canvas")).toBeTruthy();
+  });
+});
+
 import { fireEvent } from "@testing-library/react";
 import IntelPanel from "@/components/IntelPanel";
 import type { IntelSignal } from "@/types";

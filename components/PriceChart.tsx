@@ -73,9 +73,10 @@ function drawLightningArc(
 interface Props {
   history: PricePoint[];
   currentPrice: number | null;
+  signalDates?: string[];
 }
 
-export default function PriceChart({ history, currentPrice }: Props) {
+export default function PriceChart({ history, currentPrice, signalDates }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number | null>(null);
   const [range, setRange] = useState(90);
@@ -103,6 +104,14 @@ export default function PriceChart({ history, currentPrice }: Props) {
     const max = Math.max(...prices);
 
     const pts = mapToCanvasCoords(prices, min, max, CW, CHART_TOP, CHART_BOT);
+
+    // Map signal dates to x-positions in the current filtered window
+    const signalXPositions: number[] = (signalDates ?? []).flatMap((sd) => {
+      const prefix = sd.slice(0, 10);
+      const idx = filtered.findIndex((p) => p.date.startsWith(prefix));
+      return idx >= 0 ? [pts[idx].x] : [];
+    });
+
     const ma30Raw = computeMA(prices, 30);
     const ma30Pts = ma30Raw.map((v, i) =>
       v === null ? null : {
@@ -183,6 +192,26 @@ export default function PriceChart({ history, currentPrice }: Props) {
         ctx.shadowColor = "#d4af37";
         ctx.stroke();
         ctx.restore();
+
+        // Signal date markers — gold vertical dashed lines
+        if (signalXPositions.length > 0) {
+          ctx.save();
+          ctx.setLineDash([3, 2]);
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = "rgba(212,175,55,0.7)";
+          ctx.shadowBlur = 4;
+          ctx.shadowColor = "#d4af37";
+          const tipX = pts[pointIdx].x;
+          signalXPositions.forEach((sx) => {
+            if (sx <= tipX) {
+              ctx.beginPath();
+              ctx.moveTo(sx, CHART_TOP);
+              ctx.lineTo(sx, CHART_BOT);
+              ctx.stroke();
+            }
+          });
+          ctx.restore();
+        }
 
         // 5. Price line outer glow
         ctx.save();
@@ -284,7 +313,7 @@ export default function PriceChart({ history, currentPrice }: Props) {
     }
 
     rafRef.current = requestAnimationFrame(tick);
-  }, [history]);
+  }, [history, signalDates]);
 
   useEffect(() => {
     runAnimation(range);
@@ -292,6 +321,7 @@ export default function PriceChart({ history, currentPrice }: Props) {
   }, [range, runAnimation]);
 
   useEffect(() => {
+    if (typeof ResizeObserver === "undefined") return;
     const obs = new ResizeObserver(() => runAnimation(range));
     if (canvasRef.current) obs.observe(canvasRef.current);
     return () => obs.disconnect();
