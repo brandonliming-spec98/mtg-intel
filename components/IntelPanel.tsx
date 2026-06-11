@@ -32,7 +32,7 @@ function BarRow({
   value: number;
   max: number;
 }) {
-  const fill = max > 0 ? Math.round((value / max) * 100) : 0;
+  const fill = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0;
   const color = fill >= 50 ? "#22c55e" : "#ef4444";
   return (
     <div>
