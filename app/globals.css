@@ -103,3 +103,34 @@ body {
   z-index: 9999;
   opacity: 0.4;
 }
+
+/* Foil shimmer — applied to .card-hero-foil */
+@keyframes foilSweep {
+  from { transform: translateX(-60%) translateY(-60%); }
+  to   { transform: translateX(60%) translateY(60%); }
+}
+
+.card-hero-foil {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-hero-foil::before {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  background: linear-gradient(
+    105deg,
+    transparent 20%,
+    rgba(255,255,255,0.04) 30%,
+    rgba(180,100,255,0.15) 38%,
+    rgba(100,200,255,0.2) 42%,
+    rgba(255,200,100,0.15) 46%,
+    rgba(100,255,180,0.1) 50%,
+    rgba(255,255,255,0.04) 58%,
+    transparent 70%
+  );
+  animation: foilSweep 3s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}

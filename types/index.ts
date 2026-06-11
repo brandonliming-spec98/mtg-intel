@@ -38,6 +38,8 @@ export interface ScryfallCard {
   released_at: string;
   edhrec_rank?: number;
   reserved: boolean;
+  foil: boolean;
+  nonfoil: boolean;
   reprint: boolean;
   uri: string;
   scryfall_uri: string;
