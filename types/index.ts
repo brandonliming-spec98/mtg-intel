@@ -120,6 +120,15 @@ export interface CardWithPrice extends ScryfallCard {
 
 // ── Intel Signal (Phase 2 preview) ──────────────────────────────────────────
 
+export type SignalType =
+  | "buy_hype"
+  | "format_staple"
+  | "reprint_announced"
+  | "price_peak"
+  | "ban_risk"
+  | "set_release_pressure"
+  | "general";
+
 export interface IntelSignal {
   id: string;
   card_name_raw: string;
@@ -127,6 +136,8 @@ export interface IntelSignal {
   source_url: string;
   source_title: string;
   sentiment: "bullish" | "bearish" | "neutral";
+  signal_type?: SignalType;
+  sell_window?: string | null;
   signal_strength: number;
   summary: string;
   published_at: string;

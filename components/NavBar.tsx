@@ -1,12 +1,13 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, TrendingUp, Zap, Home } from "lucide-react";
+import { Search, TrendingUp, Zap, Home, Flame } from "lucide-react";
 
 const links = [
   { href: "/", label: "Home", icon: Home },
   { href: "/search", label: "Search", icon: Search },
   { href: "/market", label: "Market", icon: TrendingUp },
+  { href: "/hot", label: "Hot Cards", icon: Flame },
   { href: "/intel", label: "Intel", icon: Zap, badge: "Soon" },
 ];
 
