@@ -90,6 +90,7 @@ describe("PriceChart", () => {
 
 import { fireEvent } from "@testing-library/react";
 import IntelPanel from "@/components/IntelPanel";
+import SignalCard from "@/components/SignalCard";
 import type { IntelSignal } from "@/types";
 
 function makeSignal(i: number, sentiment: "bullish" | "bearish" = "bullish"): IntelSignal {
@@ -138,5 +139,27 @@ describe("IntelPanel", () => {
   it("renders empty state when no signals", () => {
     render(<IntelPanel signals={[]} score={0} subScores={{ volume: 0, sentiment: 0, momentum: 0, scarcity: 0 }} />);
     expect(screen.getByText(/No signals yet/)).toBeTruthy();
+  });
+});
+
+const mockSignal: IntelSignal = {
+  id: "s1",
+  card_name_raw: "Black Lotus",
+  source_type: "reddit",
+  source_url: "https://reddit.com",
+  source_title: "Big post",
+  sentiment: "bullish",
+  signal_strength: 8,
+  summary: "This card is going crazy",
+  published_at: new Date().toISOString(),
+};
+
+describe("SignalCard", () => {
+  it("renders a strength bar with correct width", () => {
+    const { container } = render(<SignalCard signal={mockSignal} />);
+    // signal_strength 8 → 80% fill
+    const bar = container.querySelector("[data-testid='strength-fill']");
+    expect(bar).toBeTruthy();
+    expect((bar as HTMLElement).style.width).toBe("80%");
   });
 });

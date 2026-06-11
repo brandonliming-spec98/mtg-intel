@@ -105,6 +105,19 @@ export default function SignalCard({
               <div className="text-neutral text-[10px] font-mono mt-0.5">
                 {SOURCE_LABEL[signal.source_type]} · {timeAgo} · score {signal.signal_strength}/10
               </div>
+              {/* Signal strength bar */}
+              <div style={{ background: "#21262d", borderRadius: 2, height: 4, marginTop: 4 }}>
+                <div
+                  data-testid="strength-fill"
+                  style={{
+                    width: `${signal.signal_strength * 10}%`,
+                    height: 4,
+                    borderRadius: 2,
+                    background: sentimentColor,
+                    transition: "width 0.4s ease",
+                  }}
+                />
+              </div>
             </div>
             {priceDisplay && (
               <div className="text-right flex-shrink-0">
