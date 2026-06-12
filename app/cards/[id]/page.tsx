@@ -156,6 +156,10 @@ export default async function CardDetailPage({ params }: Props) {
       <div className="grid md:grid-cols-[2fr,3fr] gap-8 mb-8">
         <CardTiltHero card={card} foil={isFoil} />
         <IntelPanel signals={signals} score={momentumScore} subScores={subScores} />
+      </div>
+
+      {/* Projection panel — full width below the top zone */}
+      <div className="mb-8">
         <ProjectionPanel
           cardName={card.name}
           setCode={card.set}
