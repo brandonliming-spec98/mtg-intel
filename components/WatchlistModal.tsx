@@ -10,6 +10,7 @@ interface ScryfallPrint {
   set: string;
   collector_number: string;
   released_at: string;
+  type_line?: string;
   finishes?: string[];
   image_uris?: { normal: string };
   card_faces?: Array<{ image_uris?: { normal: string } }>;
@@ -75,6 +76,7 @@ export default function WatchlistModal({ cardName, defaultPrintId, onClose }: Pr
       collector_number: selectedPrint.collector_number,
       finish,
       image_uri: getImageUri(selectedPrint),
+      type_line: selectedPrint.type_line,
       status,
       added_at: new Date().toISOString(),
     };

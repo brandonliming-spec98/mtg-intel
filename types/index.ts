@@ -175,6 +175,69 @@ export interface WatchlistEntry {
   collector_number: string;
   finish: WatchlistFinish;
   image_uri: string;
+  type_line?: string;
   status: WatchlistStatus;
   added_at: string;        // ISO 8601
+}
+
+// ── Projections ──────────────────────────────────────────────────────────────
+
+export type ProjectionVerdict = "BUY" | "HOLD" | "SELL";
+export type SignalPip = "sentiment" | "signal" | "price" | "mechanics" | "generic";
+export type ConditionOperator = "gt" | "gte" | "lt" | "lte" | "eq" | "neq";
+
+export interface AlgorithmCondition {
+  field: string;
+  op: ConditionOperator;
+  val: number | string;
+}
+
+export interface ProjectionAlgorithmDef {
+  purpose_key: string;
+  purpose_description: string;
+  conditions: AlgorithmCondition[];
+  verdict: ProjectionVerdict;
+  confidence: number;
+}
+
+export interface ProjectionAlgorithm {
+  id: string;
+  purpose_key: string;
+  purpose_description: string;
+  algorithm_json: ProjectionAlgorithmDef;
+  success_rate: number;
+  validation_count: number;
+  promoted: boolean;
+  created_at: string;
+  last_validated_at: string | null;
+}
+
+export interface Projection {
+  id: string;
+  card_name: string;
+  verdict: ProjectionVerdict;
+  confidence: number;
+  reasoning: string;
+  flavor_text: string | null;
+  key_signals: string[];
+  signal_pips: SignalPip[];
+  algorithm_json: ProjectionAlgorithmDef | null;
+  source: "claude" | "algorithm";
+  purpose_key: string | null;
+  cached_at: string;
+  expires_at: string;
+  outcome_price_validated: boolean;
+  outcome_signal_validated: boolean;
+  outcome_user_validated: boolean;
+  outcome_score: number | null;
+  validated_at: string | null;
+}
+
+// CardFeatures — flat map used by the algorithm runner
+export interface CardFeatures {
+  break_score: number;
+  ban_risk: number;
+  sentiment: "bullish" | "bearish" | "neutral";
+  signal_count: number;
+  price_trend_7d: "rising" | "falling" | "flat";
 }
