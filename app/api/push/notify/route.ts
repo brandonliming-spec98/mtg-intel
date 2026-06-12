@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import webpush from "web-push";
 import { checkTriggers } from "@/lib/push-triggers";
 import { getPriceWithFallback } from "@/lib/price-sources";
+import { runPriceFeedback, runSignalFeedback } from "@/lib/projection-feedback";
 import type { WatchlistEntry } from "@/types";
 
 webpush.setVapidDetails(
@@ -72,6 +73,10 @@ export async function GET(req: NextRequest) {
       .update({ last_notified: updatedNotified, updated_at: new Date().toISOString() })
       .eq("id", row.id);
   }
+
+  // Run projection feedback checks best-effort
+  runPriceFeedback(supabase, getPriceWithFallback).catch(() => {});
+  runSignalFeedback(supabase).catch(() => {});
 
   return NextResponse.json({ ok: true, fired });
 }

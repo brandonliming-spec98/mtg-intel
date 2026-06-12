@@ -13,6 +13,7 @@ import type { IntelSignal, MechanicsProfile } from "@/types";
 import CardTiltHero from "@/components/CardTiltHero";
 import IntelPanel from "@/components/IntelPanel";
 import WatchButton from "@/components/WatchButton";
+import ProjectionPanel from "@/components/ProjectionPanel";
 
 interface Props { params: Promise<{ id: string }> }
 
@@ -155,6 +156,13 @@ export default async function CardDetailPage({ params }: Props) {
       <div className="grid md:grid-cols-[2fr,3fr] gap-8 mb-8">
         <CardTiltHero card={card} foil={isFoil} />
         <IntelPanel signals={signals} score={momentumScore} subScores={subScores} />
+        <ProjectionPanel
+          cardName={card.name}
+          setCode={card.set}
+          collectorNumber={card.collector_number}
+          imageUri={card.image_uris?.normal ?? card.card_faces?.[0]?.image_uris?.normal ?? ""}
+          typeLine={card.type_line}
+        />
       </div>
 
       {/* Price chart — full width */}
