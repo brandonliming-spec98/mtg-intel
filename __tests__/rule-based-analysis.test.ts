@@ -179,4 +179,36 @@ describe("ruleBasedAnalyze — signal_type detection", () => {
     expect(sig!.sentiment).toBe("neutral");
     expect(sig!.signal_strength).toBe(3);
   });
+
+  it("drops catalog names that only appear inside a longer matched name", async () => {
+    vi.doMock("@/lib/scryfall-catalog", () => ({
+      getCardCatalog: vi.fn().mockResolvedValue(
+        new Set(["Ragavan, Nimble Pilferer", "Nimble Pilferer", "Pilfer"])
+      ),
+    }));
+    const { ruleBasedAnalyze: analyze } = await import("@/lib/rule-based-analysis");
+
+    const signals = await analyze({
+      ...baseInput,
+      content: "Ragavan, Nimble Pilferer is spiking hard right now.",
+    });
+
+    expect(signals.map((s) => s.card_name_raw)).toEqual([
+      "Ragavan, Nimble Pilferer",
+    ]);
+  });
+
+  it("requires word boundaries around matched names", async () => {
+    vi.doMock("@/lib/scryfall-catalog", () => ({
+      getCardCatalog: vi.fn().mockResolvedValue(new Set(["Opt"])),
+    }));
+    const { ruleBasedAnalyze: analyze } = await import("@/lib/rule-based-analysis");
+
+    const signals = await analyze({
+      ...baseInput,
+      content: "This is the optimal options trade, adopt it.",
+    });
+
+    expect(signals).toEqual([]);
+  });
 });

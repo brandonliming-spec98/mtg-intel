@@ -112,34 +112,50 @@ function classify(content: string): Classification {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
+function isWordBounded(content: string, name: string): boolean {
+  let idx = content.indexOf(name);
+  while (idx !== -1) {
+    const before = idx === 0 ? "" : content[idx - 1];
+    const after = content[idx + name.length] ?? "";
+    if (!/[a-z0-9]/.test(before) && !/[a-z0-9]/.test(after)) return true;
+    idx = content.indexOf(name, idx + 1);
+  }
+  return false;
+}
+
 export async function ruleBasedAnalyze(input: AnalysisInput): Promise<IntelSignal[]> {
   const catalog = await getCardCatalog();
   const lowerContent = input.content.toLowerCase();
-  const seen = new Set<string>();
-  const signals: IntelSignal[] = [];
 
   const { signal_type, sentiment, signal_strength, sell_window, summary } =
     classify(input.content);
 
+  const matches: string[] = [];
   for (const name of catalog) {
-    if (seen.has(name)) continue;
-    if (lowerContent.includes(name.toLowerCase())) {
-      seen.add(name);
-      signals.push({
-        id: generateId(),
-        card_name_raw: name,
-        source_type: input.source_type,
-        source_url: input.source_url,
-        source_title: input.source_title,
-        sentiment,
-        signal_type,
-        sell_window,
-        signal_strength,
-        summary,
-        published_at: input.published_at,
-      });
-    }
+    if (isWordBounded(lowerContent, name.toLowerCase())) matches.push(name);
   }
 
-  return signals;
+  // "Pilfer" matching inside "Ragavan, Nimble Pilferer" is noise — drop any
+  // match that appears within a longer matched name.
+  const kept = matches.filter(
+    (name) =>
+      !matches.some(
+        (other) =>
+          other !== name && other.toLowerCase().includes(name.toLowerCase())
+      )
+  );
+
+  return kept.map((name) => ({
+    id: generateId(),
+    card_name_raw: name,
+    source_type: input.source_type,
+    source_url: input.source_url,
+    source_title: input.source_title,
+    sentiment,
+    signal_type,
+    sell_window,
+    signal_strength,
+    summary,
+    published_at: input.published_at,
+  }));
 }

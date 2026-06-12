@@ -15,7 +15,13 @@ describe("getCardCatalog", () => {
     const { getCardCatalog } = await import("@/lib/scryfall-catalog");
     const catalog = await getCardCatalog();
 
-    expect(fetch).toHaveBeenCalledWith("https://api.scryfall.com/catalog/card-names");
+    // Scryfall 400s requests without a User-Agent and Accept header
+    expect(fetch).toHaveBeenCalledWith(
+      "https://api.scryfall.com/catalog/card-names",
+      expect.objectContaining({
+        headers: expect.objectContaining({ Accept: "application/json" }),
+      })
+    );
     expect(catalog).toBeInstanceOf(Set);
     expect(catalog.has("Ragavan, Nimble Pilferer")).toBe(true);
     expect(catalog.has("Black Lotus")).toBe(true);
