@@ -10,7 +10,7 @@ let _defaultClient: Client | null = null;
 function getDefaultClient(): Client {
   return (_defaultClient ??= createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
   ));
 }
 

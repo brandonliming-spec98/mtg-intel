@@ -10,9 +10,11 @@ export interface SignalQuery {
 type Client = Pick<SupabaseClient, "from">;
 
 function getDefaultClient(): Client {
+  // Server-only module: intel_signals has RLS with no anon policies,
+  // so the anon key silently reads/writes nothing.
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 }
 
