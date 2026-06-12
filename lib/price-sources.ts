@@ -6,19 +6,12 @@
  */
 
 import { CardPriceData } from "@/types";
-import { getCardPriceData as getMTGStocksPrice } from "./mtgstocks";
-import { getMTGGoldfishPrice } from "./mtggoldfish";
+import { getScryfallPriceData } from "./scryfall";
 
 export async function getPriceWithFallback(cardName: string): Promise<CardPriceData | null> {
-  // Primary: MTGStocks (better history)
-  const mtgstocksData = await getMTGStocksPrice(cardName);
-  if (mtgstocksData?.currentPrice !== null) return mtgstocksData;
-
-  // Fallback: MTGGoldfish
-  const goldfish = await getMTGGoldfishPrice(cardName);
-  if (goldfish?.currentPrice !== null) return goldfish;
-
-  return null;
+  // Primary: Scryfall. MTGStocks removed their public API (2026-06) and the
+  // MTGGoldfish name-only price URL 404s, so Scryfall is the one solid source.
+  return getScryfallPriceData(cardName);
 }
 
 export function formatPrice(price: number | null | undefined): string {

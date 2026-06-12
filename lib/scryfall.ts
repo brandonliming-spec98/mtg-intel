@@ -1,4 +1,4 @@
-import { ScryfallCard, ScryfallSearchResult, ScryfallRuling, ScryfallSet } from "@/types";
+import { ScryfallCard, ScryfallSearchResult, ScryfallRuling, ScryfallSet, CardPriceData } from "@/types";
 
 const BASE = "https://api.scryfall.com";
 const HEADERS = {
@@ -37,6 +37,49 @@ export async function getCardPrints(name: string): Promise<ScryfallCard[]> {
   const encoded = encodeURIComponent(`!"${name}"`);
   const res = await scryfallFetch<ScryfallSearchResult>(`/cards/search?q=${encoded}&unique=prints&order=released`);
   return res.data;
+}
+
+// Price adapter: named lookup first; fuzzy matches can land on unpriced
+// promo prints, so fall back to the cheapest priced print of the card.
+export async function getScryfallPriceData(cardName: string): Promise<CardPriceData | null> {
+  let currentPrice: number | null = null;
+  let currentFoilPrice: number | null = null;
+
+  try {
+    const card = await getCardByName(cardName);
+    currentPrice = card.prices?.usd ? parseFloat(card.prices.usd) : null;
+    currentFoilPrice = card.prices?.usd_foil ? parseFloat(card.prices.usd_foil) : null;
+  } catch {
+    /* fall through to prints */
+  }
+
+  if (currentPrice === null) {
+    try {
+      const prints = await getCardPrints(cardName);
+      const priced = prints
+        .filter((p) => p.prices?.usd)
+        .sort((a, b) => parseFloat(a.prices!.usd!) - parseFloat(b.prices!.usd!));
+      if (priced.length > 0) {
+        currentPrice = parseFloat(priced[0].prices!.usd!);
+        currentFoilPrice ??= priced[0].prices?.usd_foil
+          ? parseFloat(priced[0].prices.usd_foil)
+          : null;
+      }
+    } catch {
+      /* no priced prints */
+    }
+  }
+
+  if (currentPrice === null) return null;
+
+  return {
+    cardName,
+    currentPrice,
+    currentFoilPrice,
+    history: [],
+    source: "scryfall",
+    lastUpdated: new Date().toISOString(),
+  };
 }
 
 export async function getSet(code: string): Promise<ScryfallSet> {
