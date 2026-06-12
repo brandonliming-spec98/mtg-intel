@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { runAlgorithms } from "@/lib/projection-engine";
 import { callProjectionClaude } from "@/lib/projection-prompt";
@@ -126,8 +126,9 @@ export async function GET(
       algorithm_json: claudeResult.algorithm,
     };
     purpose_key = claudeResult.algorithm.purpose_key;
-    // 5. Upsert algorithm (best-effort)
-    upsertAlgorithm(supabase, claudeResult.algorithm).catch(() => {});
+    // 5. Upsert algorithm best-effort after the response — a bare promise
+    // would be frozen with the function on Vercel and never complete
+    after(() => upsertAlgorithm(supabase, claudeResult.algorithm).catch(() => {}));
   }
 
   // 6. Store projection

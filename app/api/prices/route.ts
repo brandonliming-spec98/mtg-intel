@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { getPriceWithFallback } from "@/lib/price-sources";
 import { recordSnapshot, getPriceHistory } from "@/lib/price-history";
 
@@ -9,8 +9,11 @@ export async function GET(req: NextRequest) {
     const data = await getPriceWithFallback(name);
     if (data?.currentPrice != null) {
       // History accrues from daily snapshots since MTGStocks (which provided
-      // backfilled history) shut down their API.
-      recordSnapshot(name, data.currentPrice, data.currentFoilPrice).catch(() => {});
+      // backfilled history) shut down their API. The write must go through
+      // after() — Vercel freezes the function once the response returns, so
+      // a bare fire-and-forget promise never completes.
+      const { currentPrice, currentFoilPrice } = data;
+      after(() => recordSnapshot(name, currentPrice, currentFoilPrice).catch(() => {}));
       data.history = await getPriceHistory(name).catch(() => []);
     }
     return NextResponse.json(data, { headers: { "Cache-Control": "s-maxage=1800" } });

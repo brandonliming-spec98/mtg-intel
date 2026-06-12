@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import webpush from "web-push";
 import { checkTriggers } from "@/lib/push-triggers";
@@ -74,9 +74,10 @@ export async function GET(req: NextRequest) {
       .eq("id", row.id);
   }
 
-  // Run projection feedback checks best-effort
-  runPriceFeedback(supabase, getPriceWithFallback).catch(() => {});
-  runSignalFeedback(supabase).catch(() => {});
+  // Run projection feedback checks best-effort after the response — a bare
+  // promise would be frozen with the function on Vercel and never complete
+  after(() => runPriceFeedback(supabase, getPriceWithFallback).catch(() => {}));
+  after(() => runSignalFeedback(supabase).catch(() => {}));
 
   return NextResponse.json({ ok: true, fired });
 }
