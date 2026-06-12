@@ -66,4 +66,37 @@ describe("buildProjectionInput", () => {
     expect(input).toContain("8.2");
     expect(input).toContain("bullish");
   });
+
+  it("slices recent_signals to 20 items", () => {
+    const features: CardFeatures = {
+      break_score: 5.0, ban_risk: 0.1, sentiment: "neutral",
+      signal_count: 25, price_trend_7d: "flat",
+    };
+    const signals = Array.from({ length: 25 }, (_, i) => ({
+      signal_type: "general" as const,
+      sentiment: "neutral" as const,
+      signal_strength: 5,
+      published_at: new Date().toISOString(),
+    }));
+    const input = buildProjectionInput("Test Card", features, signals, []);
+    expect(JSON.parse(input).recent_signals).toHaveLength(20);
+  });
+
+  it("slices price_history to last 90 items", () => {
+    const features: CardFeatures = {
+      break_score: 5.0, ban_risk: 0.1, sentiment: "neutral",
+      signal_count: 0, price_trend_7d: "flat",
+    };
+    const history = Array.from({ length: 100 }, (_, i) => ({
+      date: `2024-01-${String(i + 1).padStart(2, "0")}`,
+      price: 10 + i,
+      source: "scryfall",
+    }));
+    const input = buildProjectionInput("Test Card", features, [], history);
+    const parsed = JSON.parse(input);
+    expect(parsed.price_history).toHaveLength(90);
+    // Verify it's the LAST 90 (price 10+10=20 through 10+99=109)
+    expect(parsed.price_history[0].price).toBe(20);
+    expect(parsed.price_history[89].price).toBe(109);
+  });
 });

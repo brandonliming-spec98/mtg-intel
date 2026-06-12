@@ -94,11 +94,12 @@ export async function callProjectionClaude(
   try {
     const response = await resolvedClient.messages.create({
       model: "claude-sonnet-4-6",
-      max_tokens: 1024,
+      max_tokens: 2048,
       system: SYSTEM_PROMPT,
       messages: [{ role: "user", content: userMessage }],
     });
     const text = response.content.find((b) => b.type === "text")?.text ?? "";
+    if (!text) return null;
     return parseProjectionResponse(text);
   } catch {
     return null;
