@@ -10,7 +10,7 @@
     },
     {
       "path": "/api/push/notify",
-      "schedule": "0 * * * *"
+      "schedule": "0 12 * * *"
     }
   ]
 }
