@@ -9,3 +9,5 @@ CREATE TABLE projection_algorithms (
   created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
   last_validated_at   TIMESTAMPTZ
 );
+
+CREATE INDEX ON projection_algorithms (promoted);
