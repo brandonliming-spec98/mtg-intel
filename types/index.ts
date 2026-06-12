@@ -161,3 +161,20 @@ export interface MechanicsProfile {
   tier_used: "rule_based" | "mtgoracle" | "claude";
   computed_at: string;
 }
+
+// ── Watchlist ────────────────────────────────────────────────────────────────
+
+export type WatchlistFinish = "nonfoil" | "foil" | "etched";
+export type WatchlistStatus = "watching" | "owned";
+
+export interface WatchlistEntry {
+  id: string;              // Scryfall card id — unique per printing+finish combo
+  card_name: string;
+  set_code: string;
+  set_name: string;
+  collector_number: string;
+  finish: WatchlistFinish;
+  image_uri: string;
+  status: WatchlistStatus;
+  added_at: string;        // ISO 8601
+}

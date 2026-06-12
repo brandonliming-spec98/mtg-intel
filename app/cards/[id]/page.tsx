@@ -12,6 +12,7 @@ import { notFound } from "next/navigation";
 import type { IntelSignal, MechanicsProfile } from "@/types";
 import CardTiltHero from "@/components/CardTiltHero";
 import IntelPanel from "@/components/IntelPanel";
+import WatchButton from "@/components/WatchButton";
 
 interface Props { params: Promise<{ id: string }> }
 
@@ -114,7 +115,7 @@ export default async function CardDetailPage({ params }: Props) {
         <span className="text-white">{card.name}</span>
       </nav>
 
-      {/* Price + signal badge */}
+      {/* Price + signal badge + watch button */}
       <div className="flex items-center gap-4 mb-6">
         <span className="font-mono text-3xl font-bold text-white">
           {displayPrice ? `$${displayPrice.toFixed(2)}` : "—"}
@@ -136,6 +137,18 @@ export default async function CardDetailPage({ params }: Props) {
             {bullish.length > bearish.length ? "▲ BUY" : "▼ SELL"}
           </span>
         )}
+        <WatchButton
+          cardName={card.name}
+          defaultEntry={{
+            id: card.id,
+            card_name: card.name,
+            set_code: card.set,
+            set_name: card.set_name,
+            collector_number: card.collector_number,
+            finish: card.foil ? "foil" : "nonfoil",
+            image_uri: card.image_uris?.normal ?? card.card_faces?.[0]?.image_uris?.normal ?? "",
+          }}
+        />
       </div>
 
       {/* Top zone: Card hero (left) + Intel panel (right) */}

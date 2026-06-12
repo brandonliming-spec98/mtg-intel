@@ -1,14 +1,15 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, TrendingUp, Zap, Home, Flame } from "lucide-react";
+import { Search, TrendingUp, Zap, Home, Flame, Bookmark } from "lucide-react";
 
 const links = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/search", label: "Search", icon: Search },
-  { href: "/market", label: "Market", icon: TrendingUp },
-  { href: "/hot", label: "Hot Cards", icon: Flame },
-  { href: "/intel", label: "Intel", icon: Zap, badge: "Soon" },
+  { href: "/",          label: "Home",      icon: Home },
+  { href: "/search",    label: "Search",    icon: Search },
+  { href: "/market",    label: "Market",    icon: TrendingUp },
+  { href: "/hot",       label: "Hot Cards", icon: Flame },
+  { href: "/watchlist", label: "Watchlist", icon: Bookmark },
+  { href: "/intel",     label: "Intel",     icon: Zap, badge: "Soon" },
 ];
 
 export default function NavBar() {
