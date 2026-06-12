@@ -141,6 +141,7 @@ export interface IntelSignal {
   signal_strength: number;
   summary: string;
   published_at: string;
+  ban_risk?: number;
 }
 
 // ── Mechanics Profile (Phase 4) ─────────────────────────────────────────────

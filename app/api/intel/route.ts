@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchSignals } from "@/lib/supabase-signals";
+import { enrichWithBanRisk } from "./enrich";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -8,7 +9,8 @@ export async function GET(req: NextRequest) {
 
   try {
     const signals = await fetchSignals({ cardName, limit });
-    return NextResponse.json(signals, {
+    const enriched = await enrichWithBanRisk(signals);
+    return NextResponse.json(enriched, {
       headers: { "Cache-Control": "s-maxage=60, stale-while-revalidate=30" },
     });
   } catch (err) {

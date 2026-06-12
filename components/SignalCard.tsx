@@ -163,6 +163,18 @@ export default function SignalCard({
                 ◆ {momentumScore} momentum
               </span>
             )}
+            {signal.ban_risk !== undefined && signal.ban_risk > 0.75 && (
+              <span
+                className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border"
+                style={{
+                  color: "#f97316",
+                  background: "#f9731618",
+                  borderColor: "#f9731640",
+                }}
+              >
+                ⚠ BAN RISK
+              </span>
+            )}
           </div>
         </div>
       </div>
