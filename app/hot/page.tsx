@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { Flame, TrendingDown, AlertTriangle, Tag, Zap, BarChart2 } from "lucide-react";
 import type { SignalType } from "@/types";
 
