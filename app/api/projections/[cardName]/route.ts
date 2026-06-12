@@ -15,7 +15,7 @@ function getClient() {
 }
 
 function computePriceTrend(history: { price: number }[]): "rising" | "falling" | "flat" {
-  if (history.length < 8) return "flat";
+  if (history.length < 14) return "flat";
   const recent = history.slice(-7).reduce((s, p) => s + p.price, 0) / 7;
   const prev = history.slice(-14, -7).reduce((s, p) => s + p.price, 0) / 7;
   if (prev === 0) return "flat";
@@ -53,12 +53,14 @@ export async function GET(
   const [priceData, signals, mechanicsRow] = await Promise.all([
     getPriceWithFallback(name).catch(() => null),
     fetchSignals({ cardName: name, limit: 30, after: thirtyDaysAgo }).catch(() => []),
-    supabase
-      .from("card_mechanics")
-      .select("break_score, ban_risk")
-      .eq("card_name", name)
-      .maybeSingle()
-      .then((r) => r.data as { break_score: number; ban_risk: number } | null),
+    Promise.resolve(
+      supabase
+        .from("card_mechanics")
+        .select("break_score, ban_risk")
+        .eq("card_name", name)
+        .maybeSingle()
+        .then((r) => r.data as { break_score: number; ban_risk: number } | null)
+    ).catch(() => null),
   ]);
 
   const history = priceData?.history ?? [];
