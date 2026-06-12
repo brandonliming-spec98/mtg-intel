@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { hybridAnalyze } from "@/lib/hybrid-analysis";
 import type { HybridAnalysisInput } from "@/lib/hybrid-analysis";
 import type { IntelSignal } from "@/types";
@@ -28,6 +28,9 @@ const ruleSignal = makeSignal({ sentiment: "neutral", signal_strength: 3, summar
 const claudeSignal = makeSignal({ sentiment: "bullish", signal_strength: 9 });
 
 describe("hybridAnalyze", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+
   it("uses only rule-based for Reddit posts with score < 100", async () => {
     const ruleBased = vi.fn().mockResolvedValue([ruleSignal]);
     const claude = vi.fn().mockResolvedValue([claudeSignal]);
@@ -90,6 +93,25 @@ describe("hybridAnalyze", () => {
       { ...baseInput, score: 200 },
       { ruleBased, claude }
     );
+
+    expect(signals).toEqual([]);
+  });
+
+  it("falls back to rule-based when ANTHROPIC_API_KEY is absent and score >= 100", async () => {
+    vi.stubEnv("ANTHROPIC_API_KEY", "");
+    const ruleBased = vi.fn().mockResolvedValue([ruleSignal]);
+
+    const signals = await hybridAnalyze({ ...baseInput, score: 150 }, { ruleBased });
+
+    expect(ruleBased).toHaveBeenCalledOnce();
+    expect(signals).toEqual([ruleSignal]);
+  });
+
+  it("returns empty array when rule-based fails and ANTHROPIC_API_KEY is absent", async () => {
+    vi.stubEnv("ANTHROPIC_API_KEY", "");
+    const ruleBased = vi.fn().mockRejectedValue(new Error("network error"));
+
+    const signals = await hybridAnalyze({ ...baseInput, score: 50 }, { ruleBased });
 
     expect(signals).toEqual([]);
   });

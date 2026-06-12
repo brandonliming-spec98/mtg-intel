@@ -36,7 +36,9 @@ export async function hybridAnalyze(
     catalogFailed = true;
   }
 
-  if (catalogFailed || shouldRunClaude(input)) {
+  const claudeAvailable = !!(deps.claude || process.env.ANTHROPIC_API_KEY);
+
+  if ((catalogFailed || shouldRunClaude(input)) && claudeAvailable) {
     return claudeFn(input);
   }
 

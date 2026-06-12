@@ -7,5 +7,10 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
+    environmentOptions: {
+      jsdom: {
+        localStorage: true,
+      },
+    },
   },
 });
