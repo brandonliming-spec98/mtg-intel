@@ -56,10 +56,13 @@ export async function GET(req: NextRequest) {
       );
       updatedNotified[`${t.entry.id}_${t.trigger}`] = new Date().toISOString();
       fired++;
-    } catch {
-      // Subscription expired — clear it
-      await supabase.from("push_subscriptions").delete().eq("id", row.id);
-      return NextResponse.json({ ok: true, fired, note: "Subscription expired — cleared" });
+    } catch (err: unknown) {
+      const status = (err as { statusCode?: number }).statusCode;
+      if (status === 410 || status === 404) {
+        await supabase.from("push_subscriptions").delete().eq("id", row.id);
+        return NextResponse.json({ ok: true, fired, note: "Subscription expired — cleared" });
+      }
+      // transient error — skip this trigger, continue
     }
   }
 
