@@ -23,6 +23,14 @@ function writeStorage(entries: WatchlistEntry[]): void {
   }
 }
 
+function syncWatchlist(entries: WatchlistEntry[]): void {
+  fetch("/api/push/sync-watchlist", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ watchlist: entries }),
+  }).catch(() => {});
+}
+
 export interface UseWatchlist {
   entries: WatchlistEntry[];
   add: (entry: WatchlistEntry) => void;
@@ -44,6 +52,7 @@ export function useWatchlist(): UseWatchlist {
         if (prev.some((e) => e.id === entry.id)) return prev;
         const next = [...prev, entry];
         writeStorage(next);
+        syncWatchlist(next);
         return next;
       });
     },
@@ -55,6 +64,7 @@ export function useWatchlist(): UseWatchlist {
       setEntries((prev) => {
         const next = prev.filter((e) => e.id !== id);
         writeStorage(next);
+        syncWatchlist(next);
         return next;
       });
     },
@@ -70,6 +80,7 @@ export function useWatchlist(): UseWatchlist {
             : e
         );
         writeStorage(next);
+        syncWatchlist(next);
         return next;
       });
     },
